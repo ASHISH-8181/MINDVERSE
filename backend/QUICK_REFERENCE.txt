@@ -1,0 +1,144 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                          BACKEND QUICK REFERENCE                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+🚀 START SERVER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+cd /Users/aditya/Desktop/a/backend
+npm start
+
+Expected: ✓ Database connected successfully → ✓ Server running on http://localhost:5001
+
+
+📊 DATABASE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Active:   SQLite (Development)
+File:     /Users/aditya/Desktop/a/backend/data/hackagra.db
+Mode:     USE_LOCAL_DB=true (in .env)
+
+To switch to PostgreSQL:
+  1. Set USE_LOCAL_DB=false in .env
+  2. Verify DATABASE_URL is correct
+  3. Restart: npm start
+
+
+🧪 TEST API ENDPOINTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Health Check:
+  curl http://localhost:5001/api/ping
+
+Upload File:
+  curl -X POST http://localhost:5001/api/files/upload-url \
+    -H "Content-Type: application/json" \
+    -d '{
+      "userId": "user-123",
+      "filename": "document.pdf",
+      "firebaseUrl": "https://example.com/doc.pdf",
+      "fileType": "pdf",
+      "fileSize": 2048
+    }'
+
+Get Files:
+  curl http://localhost:5001/api/files/user/user-123/files
+
+Get Stats:
+  curl http://localhost:5001/api/files/user/user-123/stats
+
+Search:
+  curl "http://localhost:5001/api/files/user/user-123/search?query=document"
+
+Delete File:
+  curl -X DELETE http://localhost:5001/api/files/user/user-123/files/FILE_ID
+
+
+⚙️  CONFIGURATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Port:              5001
+Environment:       development
+Frontend CORS:     http://localhost:5173
+Database Type:     SQLite (local) or PostgreSQL (Neon)
+Config File:       .env
+
+
+📁 IMPORTANT FILES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+.env                               → Environment variables
+src/server.js                      → Server entry point
+src/config/database.js             → Database connection
+src/models/index.js                → User & File models
+src/controllers/fileController.js  → API logic
+src/routes/fileRoutes.js           → Routes
+
+
+📖 DOCUMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+STATUS.md                          → Current server status
+SQLITE_DEV_SETUP.md                → Using SQLite locally
+POSTGRESQL_TROUBLESHOOTING.md      → Fixing PostgreSQL issues
+POSTGRESQL_MIGRATION.md            → MongoDB to PostgreSQL info
+POSTGRESQL_ARCHITECTURE.md         → Technical details
+
+
+🔍 DEBUG COMMANDS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Check if server running:
+  ps aux | grep "node src/server"
+
+Stop server:
+  pkill -f "node src/server"
+
+View SQLite database:
+  sqlite3 /Users/aditya/Desktop/a/backend/data/hackagra.db
+  > .tables
+  > SELECT * FROM users;
+
+Enable SQL logging:
+  DEBUG_SQL=1 npm start
+
+Clear database:
+  rm /Users/aditya/Desktop/a/backend/data/hackagra.db
+
+
+⚡ QUICK ACTIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ Backend running:     npm start
+✓ API responding:      curl http://localhost:5001/api/ping
+✓ Fresh start:         rm data/hackagra.db && npm start
+✓ Switch to Postgres:  Edit .env (USE_LOCAL_DB=false)
+
+
+❓ COMMON ISSUES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+"Port already in use":
+  → Kill existing: pkill -f "node src/server"
+  → Or change PORT in .env
+
+"Cannot connect to database":
+  → Check database config
+  → For SQLite: Ensure ./data dir exists
+  → For Postgres: See POSTGRESQL_TROUBLESHOOTING.md
+
+"CORS error from frontend":
+  → Verify CORS_ORIGIN in .env matches frontend
+  → Frontend should be on http://localhost:5173
+
+
+🎯 NEXT STEPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Start server:              npm start
+2. Test health endpoint:      curl http://localhost:5001/api/ping
+3. Start frontend:            cd ../frontend && npm run dev
+4. Test file operations:      Use Postman or frontend
+5. Switch to Postgres later:  See POSTGRESQL_TROUBLESHOOTING.md
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Backend Ready for Development ✅ | Database: SQLite | API: 5001 | Docs: STATUS.md

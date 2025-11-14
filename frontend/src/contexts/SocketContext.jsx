@@ -19,7 +19,7 @@ export const SocketProvider = ({ children }) => {
   useEffect(() => {
     if (isAuthenticated && user) {
       const socketUrl =
-        import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
+        import.meta.env.VITE_SOCKET_URL || "http://localhost:5001";
       const newSocket = io(socketUrl, {
         auth: {
           token: localStorage.getItem("token"),
