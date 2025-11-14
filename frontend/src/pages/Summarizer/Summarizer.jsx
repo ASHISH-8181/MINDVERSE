@@ -15,8 +15,10 @@ import {
   FiExternalLink,
 } from "react-icons/fi";
 import PDFViewer from "../../components/PDFViewer.jsx";
+
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5001/api";
+
 export default function Summarizer() {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -24,8 +26,6 @@ export default function Summarizer() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState(null);
-  const API_BASE_URL =
-    import.meta.env.VITE_API_BASE_URL || "http://localhost:5001/api";
 
   // Load user ID
   useEffect(() => {
@@ -37,21 +37,18 @@ export default function Summarizer() {
     setUserId(storedUserId);
   }, []);
 
-  // Fetch files when userId exists
+  // Fetch user files
   useEffect(() => {
     if (userId) fetchUserFiles();
   }, [userId]);
 
   const fetchUserFiles = async () => {
     try {
-      console.log("📁 Fetching files for userId:", userId);
       const response = await getUserFiles(userId);
-      console.log("✅ API Response:", response);
+
       if (response.success && Array.isArray(response.data)) {
-        console.log("✅ Files received:", response.data);
         setUserFiles(response.data);
       } else {
-        console.error("❌ Invalid response format:", response);
         setUserFiles([]);
       }
     } catch (e) {
@@ -144,8 +141,11 @@ export default function Summarizer() {
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* LEFT PANEL */}
-          <div className="lg:col-span-1">
+
+          {/* ================= LEFT PANEL ================= */}
+          <div className="lg:col-span-1 space-y-6">
+
+            {/* Upload Box */}
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
               <h2 className="text-xl font-bold mb-4">Upload File</h2>
 
@@ -179,32 +179,60 @@ export default function Summarizer() {
                 {uploading ? "Uploading..." : "Upload File"}
               </button>
             </div>
+
+            {/* ================= Upload History ================= */}
+            <div className="bg-white dark:bg-gray-800 p-6 rounded shadow">
+              <h3 className="text-xl font-bold mb-4">Upload History</h3>
+
+              {userFiles.length > 0 ? (
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {userFiles.map((file) => (
+                    <div
+                      key={file.id}
+                      onClick={() => setSelectedFile(file)}
+                      className={`p-4 rounded border cursor-pointer ${
+                        selectedFile?.id === file.id
+                          ? "bg-blue-50 border-blue-500"
+                          : "bg-gray-50 hover:border-blue-500"
+                      }`}
+                    >
+                      <h4 className="font-semibold truncate">{file.filename}</h4>
+                      <p className="text-xs">
+                        {formatDate(file.uploadedAt)} •{" "}
+                        {formatFileSize(file.fileSize)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center py-8">No files yet.</p>
+              )}
+            </div>
+
           </div>
 
-          {/* RIGHT PANEL */}
+          {/* ================= RIGHT PANEL ================= */}
           <div className="lg:col-span-2 space-y-6">
-            {/* FILE DETAILS */}
+
+            {/* File Details / Preview */}
             {selectedFile ? (
               <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-md">
-                {/* Header */}
+
                 <div className="flex justify-between items-start">
                   <div>
                     <h2 className="text-2xl font-bold">
                       {selectedFile.filename}
                     </h2>
-                    <p className="text-sm mt-2">
+                    {/* <p className="text-sm mt-2">
                       {formatDate(selectedFile.uploadedAt)}
                     </p>
                     <p className="text-sm">
                       {formatFileSize(selectedFile.fileSize)}
-                    </p>
+                    </p> */}
                   </div>
 
                   <div className="flex gap-2">
-                    <button
-                      onClick={handleCopy}
-                      className="p-2 bg-gray-200 rounded"
-                    >
+                    <button onClick={handleCopy} className="p-2 bg-gray-200 rounded">
                       <FiCopy />
                     </button>
 
@@ -225,17 +253,14 @@ export default function Summarizer() {
                   </div>
                 </div>
 
-                {/* URL BOX */}
-                <div className="bg-gray-50 p-4 rounded mt-4">
+                {/* <div className="bg-gray-50 p-4 rounded mt-4">
                   <p className="text-sm font-semibold">File URL:</p>
                   <p className="text-xs break-all text-blue-600 mt-1">
                     {selectedFile.fileUrl}
                   </p>
-                </div>
+                </div> */}
 
-                {/* PREVIEW */}
                 <div className="mt-6">
-                  {/* Image */}
                   {selectedFile.fileType?.startsWith("image/") && (
                     <img
                       src={selectedFile.fileUrl}
@@ -243,7 +268,6 @@ export default function Summarizer() {
                     />
                   )}
 
-                  {/* PDF */}
                   {selectedFile.fileType === "application/pdf" && (
                     <PDFViewer
                       url={`${API_BASE_URL}/files/proxy-pdf?url=${encodeURIComponent(
@@ -252,7 +276,6 @@ export default function Summarizer() {
                     />
                   )}
 
-                  {/* Other Files */}
                   {!selectedFile.fileType?.startsWith("image/") &&
                     selectedFile.fileType !== "application/pdf" && (
                       <div className="p-4 mt-4 bg-gray-100 rounded-lg text-center">
@@ -274,38 +297,8 @@ export default function Summarizer() {
                 <p>Select a file to view details</p>
               </div>
             )}
-
-            {/* HISTORY */}
-            <div className="bg-white dark:bg-gray-800 p-6 rounded shadow">
-              <h3 className="text-xl font-bold mb-4">Upload History</h3>
-
-              {userFiles.length > 0 ? (
-                <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {userFiles.map((file) => (
-                    <div
-                      key={file.id}
-                      onClick={() => setSelectedFile(file)}
-                      className={`p-4 rounded border cursor-pointer ${
-                        selectedFile?.id === file.id
-                          ? "bg-blue-50 border-blue-500"
-                          : "bg-gray-50 hover:border-blue-500"
-                      }`}
-                    >
-                      <h4 className="font-semibold truncate">
-                        {file.filename}
-                      </h4>
-                      <p className="text-xs">
-                        {formatDate(file.uploadedAt)} •{" "}
-                        {formatFileSize(file.fileSize)}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-center py-8">No files yet.</p>
-              )}
-            </div>
           </div>
+
         </div>
       </div>
     </div>
