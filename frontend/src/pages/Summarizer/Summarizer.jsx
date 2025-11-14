@@ -246,7 +246,7 @@ export default function Summarizer() {
                   {/* PDF */}
                   {selectedFile.fileType === "application/pdf" && (
                     <PDFViewer
-                      url={`${API_BASE_URL}/files/proxy?url=${encodeURIComponent(
+                      url={`${API_BASE_URL}/files/proxy-pdf?url=${encodeURIComponent(
                         selectedFile.fileUrl
                       )}`}
                     />
