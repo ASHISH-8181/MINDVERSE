@@ -227,10 +227,10 @@ export default function Summarizer() {
                 <div className="space-y-2 max-h-96 overflow-y-auto">
                   {userFiles.map((file) => (
                     <div
-                      key={file.id}
+                      key={file._id}
                       onClick={() => setSelectedFile(file)}
                       className={`p-4 rounded border cursor-pointer ${
-                        selectedFile?.id === file.id
+                        selectedFile?._id === file._id
                           ? "bg-blue-50 border-blue-500"
                           : "bg-gray-50 hover:border-blue-500"
                       }`}
@@ -301,7 +301,7 @@ export default function Summarizer() {
                     </a>
 
                     <button
-                      onClick={() => handleDelete(selectedFile.id)}
+                      onClick={() => handleDelete(selectedFile._id)}
                       className="p-2 bg-red-200 text-red-600 rounded hover:bg-red-300 transition"
                       title="Delete file"
                     >

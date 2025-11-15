@@ -1,0 +1,7 @@
+# Optional / heavy ML packages for summarization
+# Note: installing torch on Windows is best done using the official wheel index described below.
+transformers
+llama-cpp-python
+# torch is large; install using the command appropriate for your CUDA/CPU configuration
+# Example (CPU-only):
+#   pip install --index-url https://download.pytorch.org/whl/cpu torch

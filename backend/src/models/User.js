@@ -6,9 +6,9 @@ const fileSchema = new mongoose.Schema({
     required: [true, "Filename is required"],
     trim: true,
   },
-  firebaseUrl: {
+  fileUrl: {
     type: String,
-    required: [true, "Firebase URL is required"],
+    required: [true, "File URL is required"],
   },
   fileType: {
     type: String,

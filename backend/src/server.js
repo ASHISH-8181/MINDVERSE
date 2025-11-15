@@ -3,7 +3,7 @@ const { Server } = require("socket.io");
 require("dotenv").config();
 
 const app = require("./app");
-const { connectDB } = require("./config/database");
+const { connectMongo } = require("./config/mongo");
 
 const PORT = process.env.PORT || 5000;
 
@@ -26,8 +26,8 @@ io.on("connection", (socket) => {
 // Start server
 const startServer = async () => {
   try {
-    // Connect to PostgreSQL
-    await connectDB();
+    // Connect to MongoDB
+    await connectMongo();
 
     // Start HTTP server
     server.listen(PORT, () => {
