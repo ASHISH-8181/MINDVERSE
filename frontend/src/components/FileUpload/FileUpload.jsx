@@ -20,26 +20,32 @@ const FileUploadComponent = ({ userId }) => {
   }, [userId]);
 
   const fetchUserFiles = async () => {
+    if (!userId) {
+      console.warn("⚠️ No userId provided, skipping file fetch");
+      setUserFiles([]);
+      return;
+    }
+
     setIsLoading(true);
     try {
-      console.log("🔍 Fetching files for userId:", userId);
+      console.log("🔍 Fetching files from localStorage for userId:", userId);
       const result = await getUserFiles(userId);
-      console.log("📦 API Response:", result);
+      console.log("📦 localStorage Response:", result);
       if (result.success) {
-        console.log("✅ Files loaded:", result.data);
+        console.log("✅ Files loaded from localStorage:", result.data);
         setUserFiles(result.data || []);
       } else {
-        console.error("❌ API returned error:", result.message);
-        toast.error(result.message || "Failed to fetch files");
+        console.error("❌ Error loading files:", result.error);
+        setUserFiles([]);
+        // Don't show error toast for empty results, only for actual errors
+        if (result.error && !result.error.includes("User ID is required")) {
+          toast.error(result.error || "Failed to fetch files");
+        }
       }
     } catch (error) {
       console.error("❌ Error fetching user files:", error);
-      console.error("Error details:", {
-        message: error.message,
-        status: error.response?.status,
-        data: error.response?.data,
-      });
-      toast.error("Error loading files");
+      setUserFiles([]);
+      toast.error("Error loading files: " + error.message);
     } finally {
       setIsLoading(false);
     }
@@ -56,16 +62,21 @@ const FileUploadComponent = ({ userId }) => {
       return;
     }
 
+    if (!userId) {
+      toast.error("User ID is required. Please log in.");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       for (const file of files) {
         const uploadPromise = (async () => {
           console.log("📤 Starting upload for:", file.name);
-          const cloudinaryUrl = await uploadToCloudinary(file);
-          console.log("✅ Cloudinary URL received:", cloudinaryUrl);
+          const cloudinaryUrl = await uploadToCloudinary(file, userId);
+          console.log("✅ Firebase URL received:", cloudinaryUrl);
 
-          console.log("💾 Saving to database with:", {
+          console.log("💾 Saving to localStorage with:", {
             userId,
             filename: file.name,
             fileUrl: cloudinaryUrl,
@@ -81,7 +92,7 @@ const FileUploadComponent = ({ userId }) => {
             file.size
           );
 
-          console.log("✅ Database save result:", saveResult);
+          console.log("✅ LocalStorage save result:", saveResult);
           return { success: true };
         })();
 
@@ -201,7 +212,7 @@ const FileUploadComponent = ({ userId }) => {
                   </div>
                   <div className="flex gap-2 ml-4">
                     <a
-                      href={file.fileUrl}
+                      href={file.fileUrl || file.firebaseUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="bg-green-500 text-white py-1 px-3 rounded text-sm hover:bg-green-600 transition"

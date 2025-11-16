@@ -1,4 +1,5 @@
-const { User, File } = require("../models/index");
+const { User } = require("../models/index");
+const mongoose = require("mongoose");
 const bcryptjs = require("bcryptjs");
 
 /**
@@ -26,7 +27,7 @@ exports.createUser = async (req, res) => {
     }
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
       return res.status(409).json({
         success: false,
@@ -37,19 +38,21 @@ exports.createUser = async (req, res) => {
     // Hash password
     const hashedPassword = await bcryptjs.hash(password, 10);
 
-    // Create new user with role (default to 'user' if not provided)
-    const user = await User.create({
+    // Create new user
+    const user = new User({
       username,
-      email,
+      email: email.toLowerCase(),
       password: hashedPassword,
       role: role || 'user',
     });
+
+    await user.save();
 
     res.status(201).json({
       success: true,
       message: "User created successfully",
       data: {
-        id: user.id,
+        id: user._id,
         username: user.username,
         email: user.email,
         role: user.role,
@@ -80,7 +83,26 @@ exports.getUser = async (req, res) => {
       });
     }
 
-    const user = await User.findById(userId).populate({ path: 'files', options: { sort: { uploadedAt: -1 } } });
+    // Support lookup by ObjectId or by username/email string (e.g. "demo-user")
+    let user = null;
+    if (userId) {
+      try {
+        if (mongoose.isValidObjectId(userId)) {
+          user = await User.findById(userId).select("-password");
+        }
+      } catch (err) {
+        // ignore cast errors
+      }
+    }
+
+    if (!user) {
+      // try username or email match when userId isn't a Mongo ObjectId
+      user = await User.findOne({ $or: [{ username: userId }, { email: userId }] }).select("-password");
+    }
+
+    if (user && user.files) {
+      user.files.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+    }
 
     if (!user) {
       return res.status(404).json({

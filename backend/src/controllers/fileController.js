@@ -1,5 +1,5 @@
-const { User, File } = require("../models/index");
-const { Op } = require("sequelize");
+const { User } = require("../models/index");
+const mongoose = require("mongoose");
 const cloudinary = require("cloudinary").v2;
 
 /**
@@ -70,39 +70,56 @@ exports.uploadFileUrl = async (req, res) => {
       });
     }
 
-    // Check or create user
-    let user = await User.findByPk(userId);
-    console.log("👤 Found user:", user?.id, user?.username);
-
-    if (!user) {
-      console.log("👤 Creating new user with id:", userId);
-      user = await User.create({
-        id: userId,
-        username: username || `user_${userId}`,
-        email: email || `${userId}@app.local`,
-        password: "auto-generated",
-      });
-      console.log("✅ User created:", user.id);
+    // Resolve user by ObjectId, then username, then email. If not found, create.
+    let user = null;
+    if (userId) {
+      try {
+        if (mongoose.isValidObjectId(userId)) {
+          user = await User.findById(userId);
+        } else {
+          // treat non-ObjectId userId as a username
+          user = await User.findOne({ username: userId });
+        }
+      } catch (err) {
+        // ignore cast errors
+      }
     }
 
-    // Save file
-    console.log("💾 Creating file record...");
-    const newFile = await File.create({
-      userId,
+    if (!user && email) {
+      user = await User.findOne({ email: email.toLowerCase() });
+    }
+
+    if (!user) {
+      console.log("👤 Creating new user");
+      const newUser = new User({
+        username: userId && !mongoose.isValidObjectId(userId) ? userId : username || `user_${Date.now()}`,
+        email: (email || `${Date.now()}@app.local`).toLowerCase(),
+        password: "auto-generated",
+      });
+      user = await newUser.save();
+      console.log("✅ User created:", user._id);
+    }
+
+    // Save file as subdocument on user
+    console.log("💾 Creating file subdocument...");
+    const fileDoc = {
       filename,
       fileUrl,
       fileType: fileType || "unknown",
       fileSize: fileSize || 0,
       uploadedAt: new Date(),
-    });
-    console.log("✅ File saved:", newFile.id, newFile.filename);
+    };
 
+    user.files.push(fileDoc);
+    await user.save();
+
+    const addedFile = user.files[user.files.length - 1];
     res.status(201).json({
       success: true,
       message: "File URL saved successfully",
       data: {
         user,
-        file: newFile,
+        file: addedFile,
       },
     });
   } catch (error) {
@@ -122,26 +139,25 @@ exports.getUserFiles = async (req, res) => {
   try {
     const { userId } = req.params;
     console.log("🔍 getUserFiles for userId:", userId);
-
-    const user = await User.findByPk(userId, {
-      include: [{ model: File, as: "files" }],
-      order: [[{ model: File, as: "files" }, "uploadedAt", "DESC"]],
-    });
-
-    console.log("👤 User found:", user?.id);
-    console.log("📁 Files for user:", user?.files?.length || 0);
-    if (user?.files) {
-      console.log(
-        "📄 File details:",
-        user.files.map((f) => ({
-          id: f.id,
-          filename: f.filename,
-          userId: f.userId,
-        }))
-      );
+    // Resolve a user by ObjectId, or by username/email if a non-ObjectId string is provided
+    let user = null;
+    if (userId) {
+      try {
+        if (mongoose.isValidObjectId(userId)) {
+          user = await User.findById(userId).select('files');
+        }
+      } catch (err) {
+        // ignore
+      }
+    }
+    if (!user) {
+      // case-insensitive username match, or exact email (lowercased)
+      const usernameRegex = new RegExp(`^${userId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
+      user = await User.findOne({ $or: [{ username: usernameRegex }, { email: userId.toLowerCase() }] }).select('files');
     }
 
-    const files = user ? user.files : [];
+    console.log("👤 User found:", user?._id || user?.username || null);
+    const files = user ? (user.files || []).sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt)) : [];
 
     res.status(200).json({
       success: true,
@@ -165,26 +181,38 @@ exports.getUserFiles = async (req, res) => {
 exports.deleteUserFile = async (req, res) => {
   try {
     const { userId, fileId } = req.params;
-
-    const file = await File.findByPk(fileId);
-    if (!file || file.userId !== userId) {
-      return res.status(404).json({
-        success: false,
-        message: "File not found or does not belong to user",
-      });
+    // Resolve user by ObjectId or username/email
+    let user = null;
+    if (userId) {
+      try {
+        if (mongoose.isValidObjectId(userId)) {
+          user = await User.findById(userId);
+        }
+      } catch (err) {}
+    }
+    if (!user) {
+      const usernameRegex = new RegExp(`^${userId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
+      user = await User.findOne({ $or: [{ username: usernameRegex }, { email: userId.toLowerCase() }] });
     }
 
-    await file.destroy();
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
 
-    const user = await User.findByPk(userId, {
-      include: [{ model: File, as: "files" }],
-      order: [[{ model: File, as: "files" }, "uploadedAt", "DESC"]],
-    });
+    const fileIndex = user.files.findIndex((f) => f._id.toString() === fileId);
+    if (fileIndex === -1) {
+      return res.status(404).json({ success: false, message: 'File not found' });
+    }
+
+    user.files.splice(fileIndex, 1);
+    await user.save();
+
+    const files = user.files.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
 
     res.status(200).json({
       success: true,
       message: "File deleted successfully",
-      files: user.files || [],
+      files,
     });
   } catch (error) {
     console.error("Error deleting file:", error);
@@ -203,15 +231,22 @@ exports.getFileStats = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    const user = await User.findByPk(userId, {
-      include: [{ model: File, as: "files" }],
-    });
+    // Resolve user by ObjectId or username/email
+    let user = null;
+    if (userId) {
+      try {
+        if (mongoose.isValidObjectId(userId)) {
+          user = await User.findById(userId).select('files');
+        }
+      } catch (err) {}
+    }
+    if (!user) {
+      const usernameRegex = new RegExp(`^${userId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
+      user = await User.findOne({ $or: [{ username: usernameRegex }, { email: userId.toLowerCase() }] }).select('files');
+    }
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
 
     const files = user.files || [];
@@ -324,16 +359,24 @@ exports.searchUserFiles = async (req, res) => {
   try {
     const { userId } = req.params;
     const { query } = req.query;
+    // Resolve user by ObjectId or username/email
+    let user = null;
+    if (userId) {
+      try {
+        if (mongoose.isValidObjectId(userId)) {
+          user = await User.findById(userId).select('files');
+        }
+      } catch (err) {}
+    }
+    if (!user) {
+      const usernameRegex = new RegExp(`^${userId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
+      user = await User.findOne({ $or: [{ username: usernameRegex }, { email: userId.toLowerCase() }] }).select('files');
+    }
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
-    const searchResults = await File.findAll({
-      where: {
-        userId,
-        filename: {
-          [Op.like]: `%${query}%`,
-        },
-      },
-      order: [["uploadedAt", "DESC"]],
-    });
+    const q = (query || '').toLowerCase();
+    const searchResults = (user.files || []).filter((f) => (f.filename || '').toLowerCase().includes(q));
+    searchResults.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
 
     res.status(200).json({
       success: true,
