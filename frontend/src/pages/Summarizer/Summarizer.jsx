@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import api from "../../utils/api";
 import {
   uploadToCloudinary,
   saveFileUrlToDatabase,
   getUserFiles,
+  deleteUserFile,
 } from "../../utils/cloudinaryUpload";
 import { extractTextViaOCR } from "../../utils/ocrUpload";
 import toast from "react-hot-toast";
@@ -17,9 +17,6 @@ import {
   FiZap,
 } from "react-icons/fi";
 import PDFViewer from "../../components/PDFViewer.jsx";
-
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5001/api";
 
 export default function Summarizer() {
   const [file, setFile] = useState(null);
@@ -70,10 +67,11 @@ export default function Summarizer() {
 
   const handleFileUpload = async () => {
     if (!file) return toast.error("Please select a file");
+    if (!userId) return toast.error("User ID is required");
 
     setUploading(true);
     try {
-      const cloudUrl = await uploadToCloudinary(file);
+      const cloudUrl = await uploadToCloudinary(file, userId);
 
       await saveFileUrlToDatabase(
         userId,
@@ -98,7 +96,7 @@ export default function Summarizer() {
   };
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(selectedFile.fileUrl);
+    navigator.clipboard.writeText(selectedFile.fileUrl || selectedFile.firebaseUrl);
     toast.success("Copied!");
   };
 
@@ -121,7 +119,7 @@ export default function Summarizer() {
     try {
       console.log(`🔍 Starting OCR for: ${selectedFile.filename}`);
       const result = await extractTextViaOCR(
-        selectedFile.fileUrl,
+        selectedFile.fileUrl || selectedFile.firebaseUrl,
         selectedFile.fileType,
         selectedFile.filename
       );
@@ -140,17 +138,19 @@ export default function Summarizer() {
     if (!confirm("Delete this file?")) return;
 
     try {
-      const res = await api.delete(`/files/user/${userId}/files/${fileId}`);
+      const res = await deleteUserFile(userId, fileId);
 
-      if (res.data.success) {
+      if (res.success) {
         toast.success("Deleted");
         await fetchUserFiles();
-        if (selectedFile?.id === fileId) {
+        if (selectedFile?.id === fileId || selectedFile?._id === fileId) {
           setSelectedFile(null);
           setOcrResult(null);
         }
+      } else {
+        toast.error(res.error || "Error deleting file");
       }
-    } catch {
+    } catch (error) {
       toast.error("Error deleting file");
     }
   };
@@ -227,10 +227,10 @@ export default function Summarizer() {
                 <div className="space-y-2 max-h-96 overflow-y-auto">
                   {userFiles.map((file) => (
                     <div
-                      key={file._id}
+                      key={file.id || file._id}
                       onClick={() => setSelectedFile(file)}
                       className={`p-4 rounded border cursor-pointer ${
-                        selectedFile?._id === file._id
+                        (selectedFile?.id === file.id || selectedFile?._id === file._id)
                           ? "bg-blue-50 border-blue-500"
                           : "bg-gray-50 hover:border-blue-500"
                       }`}
@@ -292,7 +292,7 @@ export default function Summarizer() {
                     </button>
 
                     <a
-                      href={selectedFile.fileUrl}
+                      href={selectedFile.fileUrl || selectedFile.firebaseUrl}
                       target="_blank"
                       className="p-2 bg-gray-200 rounded hover:bg-gray-300 transition"
                       title="Open in new tab"
@@ -301,7 +301,7 @@ export default function Summarizer() {
                     </a>
 
                     <button
-                      onClick={() => handleDelete(selectedFile._id)}
+                      onClick={() => handleDelete(selectedFile.id || selectedFile._id)}
                       className="p-2 bg-red-200 text-red-600 rounded hover:bg-red-300 transition"
                       title="Delete file"
                     >
@@ -320,16 +320,14 @@ export default function Summarizer() {
                 <div className="mt-6">
                   {selectedFile.fileType?.startsWith("image/") && (
                     <img
-                      src={selectedFile.fileUrl}
+                      src={selectedFile.fileUrl || selectedFile.firebaseUrl}
                       className="w-full max-h-[600px] rounded shadow object-contain"
                     />
                   )}
 
                   {selectedFile.fileType === "application/pdf" && (
                     <PDFViewer
-                      url={`${API_BASE_URL}/files/proxy-pdf?url=${encodeURIComponent(
-                        selectedFile.fileUrl
-                      )}`}
+                      url={selectedFile.fileUrl || selectedFile.firebaseUrl}
                     />
                   )}
 
@@ -338,7 +336,7 @@ export default function Summarizer() {
                       <div className="p-4 mt-4 bg-gray-100 rounded-lg text-center">
                         <p>No preview available</p>
                         <a
-                          href={selectedFile.fileUrl}
+                          href={selectedFile.fileUrl || selectedFile.firebaseUrl}
                           target="_blank"
                           className="text-blue-600 underline mt-2 inline-block"
                         >

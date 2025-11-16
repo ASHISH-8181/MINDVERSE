@@ -60,9 +60,10 @@ export default function SmartSummarizer() {
     try {
       setUploading(true);
 
-      // 1️⃣ Upload file to Cloudinary
-      toast.loading("Uploading file to Cloudinary...");
-      const cloudinaryUrl = await uploadToCloudinary(file);
+      // 1️⃣ Upload file to Firebase Storage
+      toast.loading("Uploading file to Firebase...");
+      const userId = user?.uid || user?.id || localStorage.getItem("userId") || "demo-user";
+      const cloudinaryUrl = await uploadToCloudinary(file, userId);
 
       toast.success("File uploaded successfully!");
 
