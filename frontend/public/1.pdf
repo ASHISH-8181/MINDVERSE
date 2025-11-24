@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="700" viewBox="0 0 900 700">
+  <style>
+    .title { font: bold 26px Arial, sans-serif; fill: #0c3d66; }
+    .section-title { font: bold 18px Arial, sans-serif; fill: #0c3d66; }
+    .box { fill: #e3f2fd; stroke: #1976d2; stroke-width: 2; }
+    .box-text { font: 14px Arial, sans-serif; fill: #0c3d66; }
+    .arrow { stroke: #1976d2; stroke-width: 2; fill: none; }
+  </style>
+
+  <!-- Title -->
+  <text x="450" y="40" text-anchor="middle" class="title">Computer Networks & Internet Technology Overview</text>
+  
+  <!-- Section 1: Internet Evolution -->
+  <rect x="20" y="60" width="260" height="140" class="box" rx="8"/>
+  <text x="150" y="85" text-anchor="middle" class="section-title">Evolution of Internet</text>
+  <text x="30" y="110" class="box-text">• ARPANET (1960s)</text>
+  <text x="30" y="130" class="box-text">• Packet Switching</text>
+  <text x="30" y="150" class="box-text">• TCP/IP Protocols</text>
+  <text x="30" y="170" class="box-text">• Modern Internet</text>
+  <text x="30" y="190" class="box-text">• Web Technologies</text>
+
+  <!-- Section 2: Network Types -->
+  <rect x="320" y="60" width="260" height="140" class="box" rx="8"/>
+  <text x="450" y="85" text-anchor="middle" class="section-title">Network Types</text>
+  <text x="330" y="110" class="box-text">• LAN (Local Area)</text>
+  <text x="330" y="130" class="box-text">• MAN (Metropolitan)</text>
+  <text x="330" y="150" class="box-text">• WAN (Wide Area)</text>
+  <text x="330" y="170" class="box-text">• Topologies: Bus, Star, Ring</text>
+  <text x="330" y="190" class="box-text">• Transmission Modes</text>
+
+  <!-- Section 3: Protocols & Models -->
+  <rect x="620" y="60" width="260" height="140" class="box" rx="8"/>
+  <text x="750" y="85" text-anchor="middle" class="section-title">Models & Protocols</text>
+  <text x="630" y="110" class="box-text">• OSI Model (7 layers)</text>
+  <text x="630" y="130" class="box-text">• TCP/IP Stack</text>
+  <text x="630" y="150" class="box-text">• Key Protocols:</text>
+  <text x="630" y="170" class="box-text">  - HTTP, FTP, SMTP</text>
+  <text x="630" y="190" class="box-text">  - DNS, DHCP</text>
+
+  <!-- Section 4: Hardware Devices -->
+  <rect x="20" y="240" width="400" height="160" class="box" rx="8"/>
+  <text x="220" y="265" text-anchor="middle" class="section-title">Hardware Devices</text>
+  <text x="30" y="295" class="box-text">• Hub: Broadcasts to all ports</text>
+  <text x="30" y="320" class="box-text">• Switch: Intelligent forwarding</text>
+  <text x="30" y="345" class="box-text">• Router: Directs between networks</text>
+  <text x="30" y="370" class="box-text">• Gateway: Protocol conversion</text>
+  <text x="30" y="390" class="box-text">• Bridge: Connects similar networks</text>
+
+  <!-- Section 5: IP & Routing -->
+  <rect x="460" y="240" width="420" height="160" class="box" rx="8"/>
+  <text x="670" y="265" text-anchor="middle" class="section-title">IP Addressing & Routing</text>
+  <text x="470" y="295" class="box-text">• IP Classes (A-E)</text>
+  <text x="470" y="320" class="box-text">• IPv4 Packet Format</text>
+  <text x="470" y="345" class="box-text">• Subnetting Basics</text>
+  <text x="470" y="370" class="box-text">• Routing Algorithms</text>
+  <text x="470" y="390" class="box-text">• Key Organizations: IETF, IEEE, ITU</text>
+
+  <!-- Section 6: Switching Techniques -->
+  <rect x="20" y="440" width="420" height="140" class="box" rx="8"/>
+  <text x="230" y="465" text-anchor="middle" class="section-title">Switching Techniques</text>
+  <text x="30" y="495" class="box-text">• Packet Switching (connectionless)</text>
+  <text x="30" y="520" class="box-text">• Circuit Switching (connection-oriented)</text>
+  <text x="30" y="545" class="box-text">• Datagram Networks</text>
+  <text x="30" y="565" class="box-text">• Virtual Circuits</text>
+
+  <!-- Section 7: Security -->
+  <rect x="460" y="440" width="420" height="140" class="box" rx="8"/>
+  <text x="670" y="465" text-anchor="middle" class="section-title">Network Security</text>
+  <text x="470" y="495" class="box-text">• Firewalls: Packet filter, App gateway</text>
+  <text x="470" y="520" class="box-text">• NAT (Network Address Translation)</text>
+  <text x="470" y="545" class="box-text">• Security Policies</text>
+  <text x="470" y="565" class="box-text">• ATM Technology</text>
+
+  <!-- Footer -->
+  <rect x="20" y="620" width="860" height="60" fill="#fff9e6" stroke="#fbc02d" stroke-width="2" rx="8"/>
+  <text x="450" y="650" text-anchor="middle" class="section-title" fill="#f57f17">Key Takeaway: Understanding these fundamentals is essential for designing, building, and maintaining modern networks.</text>
+</svg>

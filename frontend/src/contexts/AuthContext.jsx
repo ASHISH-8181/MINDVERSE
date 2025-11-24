@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import api from "../utils/api";
 
 const AuthContext = createContext(null);
 
@@ -18,22 +17,19 @@ export const AuthProvider = ({ children }) => {
 
   // Check if user is authenticated on mount
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkAuth = () => {
       const storedToken = localStorage.getItem("token");
-      if (storedToken) {
+      const storedUser = localStorage.getItem("user");
+      if (storedToken && storedUser) {
         try {
-          const response = await api.get("/auth/me");
-          if (response.data.success) {
-            setUser(response.data.data);
-            setToken(storedToken);
-          } else {
-            localStorage.removeItem("token");
-            setToken(null);
-          }
+          setUser(JSON.parse(storedUser));
+          setToken(storedToken);
         } catch (error) {
-          console.error("Auth check failed:", error);
+          console.error("Error loading user from localStorage:", error);
           localStorage.removeItem("token");
+          localStorage.removeItem("user");
           setToken(null);
+          setUser(null);
         }
       }
       setLoading(false);
@@ -44,55 +40,104 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password, role) => {
     try {
-      const response = await api.post("/auth/login", { email, password, role });
-      if (response.data.success) {
-        const { token, user } = response.data.data;
-        localStorage.setItem("token", token);
-        setToken(token);
-        setUser(user);
-        return { success: true, user };
+      // Load registered users from localStorage
+      const registeredUsers = JSON.parse(localStorage.getItem("registeredUsers") || "[]");
+      
+      // Find user with matching email and password
+      const foundUser = registeredUsers.find(u => u.email === email && u.password === password);
+      
+      if (!foundUser) {
+        return {
+          success: false,
+          message: "Invalid email or password",
+        };
       }
-      return { success: false, message: response.data.message };
+
+      // Generate a simple token
+      const token = btoa(`${email}:${Date.now()}`);
+      const userData = {
+        id: foundUser.id,
+        username: foundUser.username,
+        email: foundUser.email,
+        role: foundUser.role,
+      };
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(userData));
+      setToken(token);
+      setUser(userData);
+      
+      return { success: true, user: userData };
     } catch (error) {
       return {
         success: false,
-        message: error.response?.data?.message || "Login failed",
+        message: "Login failed",
       };
     }
   };
 
   const register = async (username, email, password, role = "student") => {
     try {
-      const response = await api.post("/auth/register", {
+      // Load existing users from localStorage
+      const registeredUsers = JSON.parse(localStorage.getItem("registeredUsers") || "[]");
+      
+      // Check if email already exists
+      if (registeredUsers.some(u => u.email === email)) {
+        return {
+          success: false,
+          message: "Email already registered",
+        };
+      }
+
+      // Create new user
+      const newUser = {
+        id: `user_${Date.now()}`,
         username,
         email,
-        password,
+        password, // In production, this should be hashed
         role,
-      });
-      if (response.data.success) {
-        const { token, user } = response.data.data;
-        localStorage.setItem("token", token);
-        setToken(token);
-        setUser(user);
-        return { success: true, user };
-      }
-      return { success: false, message: response.data.message };
+        createdAt: new Date().toISOString(),
+      };
+
+      // Add user to registered users
+      registeredUsers.push(newUser);
+      localStorage.setItem("registeredUsers", JSON.stringify(registeredUsers));
+
+      // Generate token and log in
+      const token = btoa(`${email}:${Date.now()}`);
+      const userData = {
+        id: newUser.id,
+        username: newUser.username,
+        email: newUser.email,
+        role: newUser.role,
+      };
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(userData));
+      setToken(token);
+      setUser(userData);
+
+      return { success: true, user: userData };
     } catch (error) {
       return {
         success: false,
-        message: error.response?.data?.message || "Registration failed",
+        message: "Registration failed",
       };
     }
   };
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     setToken(null);
     setUser(null);
   };
 
   const updateUser = (userData) => {
     setUser((prev) => ({ ...prev, ...userData }));
+    // Update in localStorage
+    const updatedUser = { ...user, ...userData };
+    localStorage.setItem("user", JSON.stringify(updatedUser));
   };
 
   const value = {

@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700">
+  <style>
+    .title { font: bold 24px sans-serif; fill: #0f172a }
+    .box { fill: #e6f4ff; stroke: #0369a1; stroke-width: 2 }
+    .text { font: 16px sans-serif; fill: #052f48 }
+    .arrow { stroke: #0369a1; stroke-width: 2; fill: none }
+  </style>
+
+  <text x="40" y="40" class="title">Flowchart: Computer Networks (Overview)</text>
+
+  <!-- OSI / TCP-IP Layers -->
+  <g>
+    <rect x="60" y="80" width="220" height="60" class="box" rx="8"/>
+    <text x="170" y="115" text-anchor="middle" class="text">Application Layer</text>
+
+    <rect x="60" y="150" width="220" height="60" class="box" rx="8"/>
+    <text x="170" y="185" text-anchor="middle" class="text">Transport Layer (TCP/UDP)</text>
+
+    <rect x="60" y="220" width="220" height="60" class="box" rx="8"/>
+    <text x="170" y="255" text-anchor="middle" class="text">Network Layer (IP)</text>
+
+    <rect x="60" y="290" width="220" height="60" class="box" rx="8"/>
+    <text x="170" y="325" text-anchor="middle" class="text">Data Link / Physical</text>
+  </g>
+
+  <!-- Devices -->
+  <g>
+    <rect x="340" y="120" width="220" height="60" class="box" rx="8"/>
+    <text x="450" y="155" text-anchor="middle" class="text">Switch / Hub</text>
+
+    <rect x="340" y="220" width="220" height="60" class="box" rx="8"/>
+    <text x="450" y="255" text-anchor="middle" class="text">Router / Gateway</text>
+
+    <line x1="280" y1="110" x2="340" y2="150" class="arrow" marker-end="url(#arrow)" />
+    <line x1="280" y1="250" x2="340" y2="250" class="arrow" marker-end="url(#arrow)" />
+  </g>
+
+  <!-- IP/Subnet -->
+  <g>
+    <rect x="620" y="160" width="420" height="180" class="box" rx="10"/>
+    <text x="830" y="200" class="text">IP Addressing & Subnetting</text>
+    <text x="830" y="230" class="text">Class A-E, IPv4 format, subnet masks</text>
+  </g>
+
+  <!-- Security -->
+  <g>
+    <rect x="60" y="380" width="220" height="80" class="box" rx="8"/>
+    <text x="170" y="420" text-anchor="middle" class="text">Firewalls / NAT</text>
+    <text x="170" y="440" text-anchor="middle" class="text">Packet filter | App gateway</text>
+  </g>
+
+  <!-- Arrows defs -->
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="6" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0369a1" />
+    </marker>
+  </defs>
+
+  <!-- connectors -->
+  <path d="M280 110 L340 110" class="arrow" marker-end="url(#arrow)" />
+  <path d="M280 160 L340 150" class="arrow" marker-end="url(#arrow)" />
+  <path d="M560 150 L620 210" class="arrow" marker-end="url(#arrow)" />
+  <path d="M560 250 L620 260" class="arrow" marker-end="url(#arrow)" />
+
+  <text x="40" y="500" class="text">Note: This is a simplified visual overview summarizing the topics in the provided notes.</text>
+</svg>

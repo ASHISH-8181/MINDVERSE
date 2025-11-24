@@ -1,9 +1,91 @@
 import { useState, useEffect } from 'react';
-import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import Loading from '../../components/Loading/Loading';
 import { FiPlay, FiClock, FiAward, FiCheckCircle, FiXCircle } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
+
+// Static quiz data from Summarizer
+const STATIC_QUIZZES = [
+  {
+    _id: "1",
+    title: "Computer Networks",
+    description: "Test your knowledge on Computer Networks and Internet protocols",
+    duration: 10,
+    questions: [
+      {
+        id: "q1",
+        question: "Which historic network project is mentioned as the origin of the Internet in the notes?",
+        options: ["ARPANET", "CSNET", "BITNET", "ARPANET-II"],
+        correctAnswer: 0,
+        explanation: "The notes explicitly mention ARPANET as the early research network that led to the Internet."
+      },
+      {
+        id: "q2",
+        question: "Which two reference models/protocol stacks are described in the document?",
+        options: ["OSI and TCP/IP", "HTTP and FTP", "SMTP and IMAP", "Ethernet and Wi-Fi"],
+        correctAnswer: 0,
+        explanation: "The notes present both the OSI model and the TCP/IP model, describing the function of each layer."
+      },
+      {
+        id: "q3",
+        question: "What addressing and routing topics are covered in the notes?",
+        options: ["IP addressing, subnetting, IPv4 packet format", "MAC addressing only", "DNS internals", "BGP configuration examples"],
+        correctAnswer: 0,
+        explanation: "The summary mentions IP addressing (Classes A–E), subnetting basics, and the IPv4 packet format."
+      },
+      {
+        id: "q4",
+        question: "Which switching techniques are explained with examples in the document?",
+        options: ["Packet switching and circuit switching", "Circuit switching only", "Virtual switching only", "Store-and-forward switching"],
+        correctAnswer: 0,
+        explanation: "The notes explain packet switching, circuit switching, datagram networks, and virtual circuits."
+      },
+      {
+        id: "q5",
+        question: "Which security topics does the final section discuss?",
+        options: ["Firewalls (types), NAT, and security policies", "SSL/TLS handshake internals", "Encryption algorithms only", "Physical security of hardware"],
+        correctAnswer: 0,
+        explanation: "The final section covers firewalls (packet filter, application gateway, circuit-level gateway), NAT, and security policies."
+      }
+    ]
+  },
+  {
+    _id: "2",
+    title: "Money Spending Problem",
+    description: "Solve the classic money spending puzzle with fractions and calculations",
+    duration: 5,
+    questions: [
+      {
+        id: "q1",
+        question: "How many spending stages does the lady go through?",
+        options: ["One", "Two", "Three", "Four"],
+        correctAnswer: 2,
+        explanation: "The lady goes through three spending stages: buying handkerchiefs, second spending, and buying a book."
+      },
+      {
+        id: "q2",
+        question: "What does the lady buy in the first spending stage?",
+        options: ["A book", "Handkerchiefs", "Clothes", "Food"],
+        correctAnswer: 1,
+        explanation: "In the first spending stage, she spends half of her total money on buying handkerchiefs."
+      },
+      {
+        id: "q3",
+        question: "How much money is left with the lady after all three spending stages?",
+        options: ["2 rupees", "1 rupee", "0.5 rupees", "3 rupees"],
+        correctAnswer: 1,
+        explanation: "After all three 'spend half' steps, the lady is left with exactly 1 rupee when she reaches home."
+      },
+      {
+        id: "q4",
+        question: "What is the pattern of spending in each stage?",
+        options: ["Spend all money", "Spend half of remaining money", "Spend one-third", "Spend a fixed amount"],
+        correctAnswer: 1,
+        explanation: "In each stage, she spends half of whatever money she has at that point."
+      }
+    ]
+  }
+];
 
 export default function Quiz() {
   const [quizzes, setQuizzes] = useState([]);
@@ -13,11 +95,17 @@ export default function Quiz() {
   const [answers, setAnswers] = useState([]);
   const [timeLeft, setTimeLeft] = useState(0);
   const [score, setScore] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [quizLoading, setQuizLoading] = useState(false);
+  const [showResults, setShowResults] = useState(false);
 
   useEffect(() => {
-    fetchQuizzes();
+    // Load static quizzes
+    setLoading(true);
+    setTimeout(() => {
+      setQuizzes(STATIC_QUIZZES);
+      setLoading(false);
+    }, 500);
   }, []);
 
   useEffect(() => {
@@ -27,33 +115,18 @@ export default function Quiz() {
     } else if (timeLeft === 0 && currentQuiz && !score) {
       handleSubmitQuiz();
     }
-  }, [timeLeft, currentQuiz]);
+  }, [timeLeft, currentQuiz, score]);
 
-  const fetchQuizzes = async () => {
-    try {
-      const res = await api.get('/quiz');
-      setQuizzes(res.data);
-    } catch (error) {
-      toast.error('Failed to fetch quizzes');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const startQuiz = async (quizId) => {
-    setQuizLoading(true);
-    try {
-      const res = await api.post(`/quiz/${quizId}/start`);
-      setCurrentQuiz(res.data);
+  const startQuiz = (quizId) => {
+    const quiz = STATIC_QUIZZES.find(q => q._id === quizId);
+    if (quiz) {
+      setCurrentQuiz(quiz);
       setCurrentQuestion(0);
       setSelectedAnswer(null);
       setAnswers([]);
-      setTimeLeft(res.data.duration * 60);
+      setTimeLeft(quiz.duration * 60);
       setScore(null);
-    } catch (error) {
-      toast.error('Failed to start quiz');
-    } finally {
-      setQuizLoading(false);
+      setShowResults(false);
     }
   };
 
@@ -76,18 +149,27 @@ export default function Quiz() {
     }
   };
 
-  const handleSubmitQuiz = async (finalAnswers = null) => {
+  const handleSubmitQuiz = (finalAnswers = null) => {
     const answersToSubmit = finalAnswers || answers;
-    try {
-      const res = await api.post(`/quiz/${currentQuiz._id}/submit`, {
-        answers: answersToSubmit,
-      });
-      setScore(res.data);
-      setCurrentQuiz(null);
-      fetchQuizzes();
-    } catch (error) {
-      toast.error('Failed to submit quiz');
-    }
+    
+    // Calculate score
+    let correctCount = 0;
+    answersToSubmit.forEach((answer, index) => {
+      if (currentQuiz.questions[index].correctAnswer === answer) {
+        correctCount++;
+      }
+    });
+    
+    const accuracy = Math.round((correctCount / currentQuiz.questions.length) * 100);
+    
+    setScore({
+      score: correctCount,
+      total: currentQuiz.questions.length,
+      accuracy: accuracy,
+      answers: answersToSubmit
+    });
+    setShowResults(true);
+    toast.success('Quiz submitted successfully!');
   };
 
   const formatTime = (seconds) => {
@@ -98,11 +180,11 @@ export default function Quiz() {
 
   if (loading) return <Loading />;
 
-  if (score) {
+  if (score && showResults) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4">
-        <div className="max-w-2xl mx-auto">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center mb-6">
             <FiAward className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Quiz Complete!</h2>
             <div className="space-y-4 mb-6">
@@ -119,23 +201,60 @@ export default function Quiz() {
                 </p>
               </div>
             </div>
-            <div className="flex gap-4 justify-center">
-              <button
-                onClick={() => {
-                  setScore(null);
-                  setCurrentQuiz(null);
-                }}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-              >
-                Take Another Quiz
-              </button>
-              <Link
-                to="/leaderboard"
-                className="px-6 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition"
-              >
-                View Leaderboard
-              </Link>
+          </div>
+
+          {/* Show detailed results */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Review Your Answers</h3>
+            <div className="space-y-4">
+              {currentQuiz.questions.map((question, index) => {
+                const userAnswerIndex = score.answers[index];
+                const isCorrect = question.correctAnswer === userAnswerIndex;
+                
+                return (
+                  <div key={question.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                    <div className="flex items-start gap-3 mb-2">
+                      {isCorrect ? (
+                        <FiCheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-1" />
+                      ) : (
+                        <FiXCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-1" />
+                      )}
+                      <div className="flex-1">
+                        <p className="font-semibold text-gray-900 dark:text-white mb-2">
+                          Q{index + 1}: {question.question}
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                          <span className={isCorrect ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
+                            Your answer: {question.options[userAnswerIndex]}
+                          </span>
+                        </p>
+                        {!isCorrect && (
+                          <p className="text-sm text-green-600 dark:text-green-400 mb-2">
+                            Correct answer: {question.options[question.correctAnswer]}
+                          </p>
+                        )}
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {question.explanation}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
+          </div>
+
+          <div className="flex gap-4 justify-center">
+            <button
+              onClick={() => {
+                setScore(null);
+                setCurrentQuiz(null);
+                setShowResults(false);
+              }}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            >
+              Take Another Quiz
+            </button>
           </div>
         </div>
       </div>

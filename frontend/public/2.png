@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <style>
+    .title { font: bold 24px Arial, sans-serif; fill: #1a1a1a; }
+    .label { font: 16px Arial, sans-serif; fill: #333; }
+    .box { fill: #fff3cd; stroke: #ff9800; stroke-width: 2; }
+    .box-text { font: 18px Arial, sans-serif; fill: #333; font-weight: bold; }
+    .arrow { stroke: #ff9800; stroke-width: 3; fill: none; }
+    .step { font: 14px Arial, sans-serif; fill: #555; }
+  </style>
+
+  <!-- Title -->
+  <text x="400" y="40" text-anchor="middle" class="title">A Lady's Shopping Problem</text>
+  
+  <!-- Problem Description -->
+  <text x="50" y="80" class="label">A lady starts with some money and spends it in 3 stages:</text>
+  <text x="50" y="105" class="step">• Stage 1: Spends HALF on handkerchiefs</text>
+  <text x="50" y="130" class="step">• Stage 2: Spends HALF of remaining on more items</text>
+  <text x="50" y="155" class="step">• Stage 3: Spends HALF of remaining on a book</text>
+  <text x="50" y="180" class="step">• Final: She has exactly 1 rupee left</text>
+  
+  <!-- Visual Flow -->
+  <g>
+    <!-- Starting Amount -->
+    <rect x="50" y="220" width="120" height="80" class="box" rx="8"/>
+    <text x="110" y="260" text-anchor="middle" class="box-text">Start: X rupees</text>
+    
+    <!-- Arrow 1 -->
+    <path d="M 170 260 L 220 260" class="arrow" marker-end="url(#arrowhead)"/>
+    <text x="195" y="250" text-anchor="middle" class="step">÷ 2</text>
+    
+    <!-- After Stage 1 -->
+    <rect x="220" y="220" width="120" height="80" class="box" rx="8"/>
+    <text x="280" y="260" text-anchor="middle" class="box-text">X/2 left</text>
+    
+    <!-- Arrow 2 -->
+    <path d="M 340 260 L 390 260" class="arrow" marker-end="url(#arrowhead)"/>
+    <text x="365" y="250" text-anchor="middle" class="step">÷ 2</text>
+    
+    <!-- After Stage 2 -->
+    <rect x="390" y="220" width="120" height="80" class="box" rx="8"/>
+    <text x="450" y="260" text-anchor="middle" class="box-text">X/4 left</text>
+    
+    <!-- Arrow 3 -->
+    <path d="M 510 260 L 560 260" class="arrow" marker-end="url(#arrowhead)"/>
+    <text x="535" y="250" text-anchor="middle" class="step">÷ 2</text>
+    
+    <!-- After Stage 3 -->
+    <rect x="560" y="220" width="120" height="80" class="box" rx="8"/>
+    <text x="620" y="260" text-anchor="middle" class="box-text">X/8 left</text>
+  </g>
+  
+  <!-- Solution -->
+  <g>
+    <rect x="50" y="350" width="630" height="120" fill="#e8f5e9" stroke="#4caf50" stroke-width="2" rx="8"/>
+    <text x="365" y="380" text-anchor="middle" class="title" fill="#2e7d32">Solution</text>
+    <text x="365" y="415" text-anchor="middle" class="label" fill="#2e7d32">Final amount = X/8 = 1 rupee</text>
+    <text x="365" y="445" text-anchor="middle" class="label" fill="#2e7d32" font-weight="bold" font-size="20">Therefore: X = 8 rupees (Original Amount)</text>
+  </g>
+  
+  <!-- Arrow marker definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#ff9800" />
+    </marker>
+  </defs>
+</svg>

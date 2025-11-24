@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520">
+  <style>
+    .title { font: bold 22px sans-serif; fill: #0b1220 }
+    .box { fill: #fff7ed; stroke: #c2410c; stroke-width: 2 }
+    .text { font: 15px sans-serif; fill: #331a00 }
+    .small { font: 13px sans-serif; fill: #6b4a00 }
+    .arrow { stroke: #c2410c; stroke-width: 2; fill: none }
+  </style>
+
+  <text x="24" y="34" class="title">Flowchart: "Spend Half" Steps (Final = 1 rupee)</text>
+
+  <!-- Starting amount -->
+  <g>
+    <rect x="40" y="80" width="220" height="60" class="box" rx="8"/>
+    <text x="150" y="115" text-anchor="middle" class="text">Start: Original Amount (X)</text>
+  </g>
+
+  <!-- first half -->
+  <g>
+    <rect x="320" y="60" width="220" height="60" class="box" rx="8"/>
+    <text x="430" y="95" text-anchor="middle" class="text">After 1st spend: X/2</text>
+  </g>
+
+  <!-- second half -->
+  <g>
+    <rect x="320" y="160" width="220" height="60" class="box" rx="8"/>
+    <text x="430" y="195" text-anchor="middle" class="text">After 2nd spend: X/4</text>
+  </g>
+
+  <!-- third half -->
+  <g>
+    <rect x="320" y="260" width="220" height="60" class="box" rx="8"/>
+    <text x="430" y="295" text-anchor="middle" class="text">After 3rd spend: X/8</text>
+  </g>
+
+  <!-- final -->
+  <g>
+    <rect x="640" y="160" width="200" height="60" class="box" rx="8"/>
+    <text x="740" y="195" text-anchor="middle" class="text">Final amount = 1 rupee</text>
+    <text x="740" y="215" text-anchor="middle" class="small">So X/8 = 1 → X = 8 rupees</text>
+  </g>
+
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="6" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#c2410c" />
+    </marker>
+  </defs>
+
+  <path d="M260 110 L320 110" class="arrow" marker-end="url(#arrow)" />
+  <path d="M420 140 L420 160" class="arrow" marker-end="url(#arrow)" />
+  <path d="M420 220 L420 240" class="arrow" marker-end="url(#arrow)" />
+  <path d="M540 290 L640 190" class="arrow" marker-end="url(#arrow)" />
+
+  <text x="40" y="480" class="small">This diagram illustrates the successive "spend half" steps; you can compute original amount by reversing the halves.</text>
+</svg>
