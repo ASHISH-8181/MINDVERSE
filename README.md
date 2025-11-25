@@ -1,3 +1,3 @@
 # hackagra
- deployed link 
- mindverse0.netlify.app
+## Live demo
+[Hackagra – Deployed on Netlify](https://mindverse0.netlify.app)
